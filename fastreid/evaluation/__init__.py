@@ -1,4 +1,4 @@
-from .evaluator import DatasetEvaluator, inference_context, inference_on_dataset
+from .evaluator import DatasetEvaluator, inference_context, inference_on_dataset, pickle_reid
 from .reid_evaluation import ReidEvaluator
 from .clas_evaluator import ClasEvaluator
 from .testing import print_csv_format, verify_results

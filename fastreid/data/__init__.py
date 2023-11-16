@@ -7,7 +7,8 @@
 from . import transforms  # isort:skip
 from .build import (
     build_reid_train_loader,
-    build_reid_test_loader
+    build_reid_test_loader,
+    build_reid_pred_loader
 )
 from .common import CommDataset
 

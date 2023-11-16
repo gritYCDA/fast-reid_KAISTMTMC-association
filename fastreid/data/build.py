@@ -14,14 +14,15 @@ from collections import Mapping
 from fastreid.config import configurable
 from fastreid.utils import comm
 from . import samplers
-from .common import CommDataset
+from .common import CommDataset, PredDataset
 from .data_utils import DataLoaderX
 from .datasets import DATASET_REGISTRY
 from .transforms import build_transforms
 
 __all__ = [
     "build_reid_train_loader",
-    "build_reid_test_loader"
+    "build_reid_test_loader",
+    "build_reid_pred_loader"
 ]
 
 _root = os.getenv("FASTREID_DATASETS", "datasets")
@@ -156,6 +157,39 @@ def build_reid_test_loader(test_set, test_batch_size, num_query, num_workers=4):
         pin_memory=True,
     )
     return test_loader, num_query
+
+def _pred_loader_from_config(cfg, *, dataset_name=None, pred_set=None, transforms=None, **kwargs):
+    if transforms is None:
+        transforms = build_transforms(cfg, is_train=False)
+
+    if pred_set is None:
+        assert dataset_name is not None, "dataset_name must be explicitly passed in when pred_set is not provided"
+        data = DATASET_REGISTRY.get(dataset_name)(root=_root, **kwargs)
+        pred_items = data.preds
+        pred_set = PredDataset(pred_items, transforms, relabel=False)
+
+    return {
+        "pred_set": pred_set,
+        "pred_batch_size": cfg.TEST.IMS_PER_BATCH,
+    }
+
+@configurable(from_config=_pred_loader_from_config)
+def build_reid_pred_loader(pred_set, pred_batch_size, num_workers=4):
+    """
+    experimental
+    """
+    mini_batch_size = pred_batch_size // comm.get_world_size()
+    data_sampler = samplers.InferenceSampler(len(pred_set))
+    batch_sampler = torch.utils.data.BatchSampler(data_sampler, mini_batch_size, False)
+    test_loader = DataLoaderX(
+        comm.get_local_rank(),
+        dataset=pred_set,
+        batch_sampler=batch_sampler,
+        num_workers=num_workers,  # save some memory
+        collate_fn=fast_batch_collator,
+        pin_memory=True,
+    )
+    return test_loader
 
 
 def trivial_batch_collator(batch):

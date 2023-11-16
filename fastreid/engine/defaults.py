@@ -17,9 +17,10 @@ from collections import OrderedDict
 import torch
 from torch.nn.parallel import DistributedDataParallel
 
-from fastreid.data import build_reid_test_loader, build_reid_train_loader
+from fastreid.data import build_reid_test_loader, build_reid_train_loader, build_reid_pred_loader
 from fastreid.evaluation import (ReidEvaluator,
-                                 inference_on_dataset, print_csv_format)
+                                 inference_on_dataset, print_csv_format,
+                                 pickle_reid)
 from fastreid.modeling.meta_arch import build_model
 from fastreid.solver import build_lr_scheduler, build_optimizer
 from fastreid.utils import comm
@@ -413,6 +414,20 @@ class DefaultTrainer(TrainerBase):
     def build_evaluator(cls, cfg, dataset_name, output_dir=None):
         data_loader, num_query = cls.build_test_loader(cfg, dataset_name)
         return data_loader, ReidEvaluator(cfg, num_query, output_dir)
+
+    @classmethod
+    def build_pred_loader(cls, cfg, dataset_name):
+        return build_reid_pred_loader(cfg, dataset_name=dataset_name)
+
+    @classmethod
+    def pickle_feature(cls, cfg, model):
+        logger = logging.getLogger(__name__)
+
+        results = OrderedDict()
+        for idx, dataset_name in enumerate(cfg.DATASETS.TESTS):
+            logger.info("Prepare testing set")
+            data_loader = cls.build_pred_loader(cfg, dataset_name)
+            pickle_reid(model, data_loader)
 
     @classmethod
     def test(cls, cfg, model):

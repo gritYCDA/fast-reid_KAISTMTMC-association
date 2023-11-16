@@ -1,0 +1,7 @@
+_BASE_: ../Base-bagtricks.yml
+
+DATASETS:
+  NAMES: ("KaistMTMC",)
+  TESTS: ("KaistMTMC",)
+
+OUTPUT_DIR: logs/kaistmtmc/bagtricks_R50_aa
