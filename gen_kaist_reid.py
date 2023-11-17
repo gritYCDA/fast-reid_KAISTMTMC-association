@@ -185,6 +185,7 @@ if __name__ == '__main__':
 	test_scenarios = os.listdir(test_frames_root); test_scenarios.sort();
 	save_scenarios = ['s01', 's20', 's34', 's42', 's47'] 
 	out_root = 'datasets/KaistMTMC-reID'
+	# out_root = 'datasets/KaistMTMC-reID_RGBT'
 	gen_reid_data(train_scenarios, save_scenarios, train_frames_root, out_root, sampling_rate=23*second)
 	gen_reid_data(test_scenarios, save_scenarios, test_frames_root, out_root, sampling_rate=23*second)
 	split_reid_data(save_scenarios, out_root)
