@@ -15,6 +15,7 @@ It must returns an instance of :class:`Backbone`.
 # Person re-id datasets
 from .kaistmtmc import KaistMTMC
 from .kaistmtmc_pred import KaistMTMCPred
+from .kaistmtmc_RGBT import KaistMTMCRGBT
 from .cuhk03 import CUHK03
 from .dukemtmcreid import DukeMTMC
 from .market1501 import Market1501

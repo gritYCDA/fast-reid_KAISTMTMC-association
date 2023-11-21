@@ -197,9 +197,11 @@ if __name__ == '__main__':
     ann_root = '/home/miruware/shw/prj-mtmc/data/kaist_mtmdc/annotations'
 
     second = 3
-    train_scenarios = os.listdir(train_frames_root); train_scenarios.sort();
-    test_scenarios = os.listdir(test_frames_root); test_scenarios.sort();
-    save_scenarios = ['s01', 's20', 's34', 's42', 's47'] 
+    train_scenarios = os.listdir(train_frames_root); train_scenarios.sort()
+    test_scenarios = os.listdir(test_frames_root); test_scenarios.sort()
+    # s10 / s20 / s31 / s38 / s39 / s42
+    # Train-ids : 401 / Test-ids: 368
+    save_scenarios = ['s10', 's20', 's31', 's38', 's39', 's42'] 
     out_root = 'datasets/KaistMTMC-reID_RGBT'
 	
     gen_reid_data(train_scenarios, save_scenarios, train_frames_root, out_root, sampling_rate=23*second)

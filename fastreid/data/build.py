@@ -14,7 +14,7 @@ from collections import Mapping
 from fastreid.config import configurable
 from fastreid.utils import comm
 from . import samplers
-from .common import CommDataset, PredDataset
+from .common import CommDataset, RGBTDataset, PredDataset
 from .data_utils import DataLoaderX
 from .datasets import DATASET_REGISTRY
 from .transforms import build_transforms
@@ -40,7 +40,10 @@ def _train_loader_from_config(cfg, *, train_set=None, transforms=None, sampler=N
                 data.show_train()
             train_items.extend(data.train)
 
-        train_set = CommDataset(train_items, transforms, relabel=True)
+        if cfg.DATASETS.NAMES[0] == 'KaistMTMCRGBT':
+            train_set = RGBTDataset(train_items, transforms, relabel=True)
+        else:
+            train_set = CommDataset(train_items, transforms, relabel=True)
 
     if sampler is None:
         sampler_name = cfg.DATALOADER.SAMPLER_TRAIN

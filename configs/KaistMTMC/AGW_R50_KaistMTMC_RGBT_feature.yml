@@ -1,0 +1,16 @@
+_BASE_: ../Base-AGW.yml
+
+DATASETS:
+  NAMES: ("KaistMTMCRGBT",)
+  TESTS: ("KaistMTMCRGBT",)
+
+MODEL:
+  META_ARCHITECTURE: Baseline_RGBT
+  BACKBONE:
+    NAME: build_resnet_RGBT_Feature_backbone
+    WITH_NL: True
+
+  HEADS:
+    POOL_LAYER: GeneralizedMeanPooling
+
+OUTPUT_DIR: logs/KaistMTMCRGBT/agw_R50_Feature

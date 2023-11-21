@@ -1,0 +1,7 @@
+_BASE_: ../Base-AGW.yml
+
+DATASETS:
+  NAMES: ("KaistMTMC",)
+  TESTS: ("KaistMTMC",)
+
+OUTPUT_DIR: logs/kaistmtmc/agw_R50

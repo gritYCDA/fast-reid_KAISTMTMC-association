@@ -11,6 +11,13 @@ Wechat:
 
 FastReID is a research platform that implements state-of-the-art re-identification algorithms. It is a ground-up rewrite of the previous version, [reid strong baseline](https://github.com/michuanhaohao/reid-strong-baseline).
 
+
+## KAISTMTMC 
+ - generate KAISTMTMC-ReID data 
+ - KAISTMTMC-ReID RGBT Multi-modal Dataloader
+ - KAISTMTMC-ReID RGBT Multi-modal AGW model
+
+
 ## What's New
 
 - [Sep 2021] [DG-ReID](https://github.com/xiaomingzhid/sskd) is updated, you can check the [paper](https://arxiv.org/pdf/2108.05045.pdf).
