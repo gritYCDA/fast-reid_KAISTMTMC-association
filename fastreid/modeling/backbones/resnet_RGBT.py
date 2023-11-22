@@ -136,6 +136,11 @@ class ResNet(nn.Module):
         elif RGBT_mode == 'Feature':
             self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                             bias=False)
+        elif self.RGBT_mode == 'Feature_not_SH':
+            self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
+                bias=False)
+            self.conv1_t = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,
+                bias=False)
         else:
             self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
                             bias=False)
@@ -189,10 +194,22 @@ class ResNet(nn.Module):
 
     def forward(self, x, thermal):
         if self.RGBT_mode == 'Concat':
-            x_t = thermal[:,[0]]
+            x_t = thermal
             x = self.conv1(torch.cat((x, x_t), dim=1))
         elif self.RGBT_mode == 'Feature':
-            x = self.conv1(x)
+            if x.shape[1] == 3:
+                x = self.conv1(x)
+            elif x.shape[1] == 1:
+                x = self.conv1(x.repeat(1,3,1,1))
+            else:
+                assert(x.shape[1] == 3 or x.shape[1] == 1)
+        elif self.RGBT_mode == 'Feature_not_SH':
+            if x.shape[1] == 3:
+                x = self.conv1(x)
+            elif x.shape[1] == 1:
+                x = self.conv1_t(x)
+            else:
+                assert(x.shape[1] == 3 or x.shape[1] == 1)
         else:       
             x = self.conv1(x)
         x = self.bn1(x)
@@ -408,6 +425,83 @@ def build_resnet_RGBT_Feature_backbone(cfg):
 
     # RGBT mode
     RGBT_mode = 'Feature'
+
+    num_blocks_per_stage = {
+        '18x': [2, 2, 2, 2],
+        '34x': [3, 4, 6, 3],
+        '50x': [3, 4, 6, 3],
+        '101x': [3, 4, 23, 3],
+    }[depth]
+
+    nl_layers_per_stage = {
+        '18x': [0, 0, 0, 0],
+        '34x': [0, 0, 0, 0],
+        '50x': [0, 2, 3, 0],
+        '101x': [0, 2, 9, 0]
+    }[depth]
+
+    block = {
+        '18x': BasicBlock,
+        '34x': BasicBlock,
+        '50x': Bottleneck,
+        '101x': Bottleneck
+    }[depth]
+
+    model = ResNet(last_stride, bn_norm, with_ibn, with_se, with_nl, block,
+                   num_blocks_per_stage, nl_layers_per_stage, RGBT_mode)
+    if pretrain:
+        # Load pretrain path if specifically
+        if pretrain_path:
+            try:
+                state_dict = torch.load(pretrain_path, map_location=torch.device('cpu'))
+                logger.info(f"Loading pretrained model from {pretrain_path}")
+            except FileNotFoundError as e:
+                logger.info(f'{pretrain_path} is not found! Please check this path.')
+                raise e
+            except KeyError as e:
+                logger.info("State dict keys error! Please check the state dict.")
+                raise e
+        else:
+            key = depth
+            if with_ibn: key = 'ibn_' + key
+            if with_se:  key = 'se_' + key
+
+            state_dict = init_pretrained_weights(key)
+        
+        incompatible = model.load_state_dict(state_dict, strict=False)
+        if incompatible.missing_keys:
+            logger.info(
+                get_missing_parameters_message(incompatible.missing_keys)
+            )
+        if incompatible.unexpected_keys:
+            logger.info(
+                get_unexpected_parameters_message(incompatible.unexpected_keys)
+            )
+
+    return model
+
+
+@BACKBONE_REGISTRY.register()
+def build_resnet_RGBT_Feature_notSh_backbone(cfg):
+    """
+    Create a ResNet instance from config.
+    Returns:
+        ResNet: a :class:`ResNet` instance.
+    """
+
+    # fmt: off
+    pretrain      = cfg.MODEL.BACKBONE.PRETRAIN
+    pretrain_path = cfg.MODEL.BACKBONE.PRETRAIN_PATH
+    last_stride   = cfg.MODEL.BACKBONE.LAST_STRIDE
+    bn_norm       = cfg.MODEL.BACKBONE.NORM
+    with_ibn      = cfg.MODEL.BACKBONE.WITH_IBN
+    with_se       = cfg.MODEL.BACKBONE.WITH_SE
+    with_nl       = cfg.MODEL.BACKBONE.WITH_NL
+    depth         = cfg.MODEL.BACKBONE.DEPTH
+    # fmt: on
+
+    # RGBT mode
+    RGBT_mode = 'Feature_not_SH'
 
     num_blocks_per_stage = {
         '18x': [2, 2, 2, 2],

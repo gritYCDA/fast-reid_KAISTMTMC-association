@@ -1,0 +1,12 @@
+_BASE_: ../Base-bagtricks.yml
+
+DATASETS:
+  NAMES: ("KaistMTMCRGBT",)
+  TESTS: ("KaistMTMCRGBT",)
+
+MODEL:
+  META_ARCHITECTURE: Baseline_RGBT
+  BACKBONE:
+    NAME: build_resnet_RGBT_Concat_backbone
+
+OUTPUT_DIR: logs/KaistMTMCRGBT/bagtricks_R50_Concat

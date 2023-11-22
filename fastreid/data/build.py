@@ -112,7 +112,11 @@ def _test_loader_from_config(cfg, *, dataset_name=None, test_set=None, num_query
         if comm.is_main_process():
             data.show_test()
         test_items = data.query + data.gallery
-        test_set = CommDataset(test_items, transforms, relabel=False)
+        
+        if cfg.DATASETS.NAMES[0] == 'KaistMTMCRGBT':
+            test_set = RGBTDataset(test_items, transforms, relabel=True)
+        else:
+            test_set = CommDataset(test_items, transforms, relabel=False)
 
         # Update query number
         num_query = len(data.query)

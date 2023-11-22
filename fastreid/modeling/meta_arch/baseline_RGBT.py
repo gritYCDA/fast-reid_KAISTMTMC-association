@@ -56,7 +56,7 @@ class Baseline_RGBT(nn.Module):
         self.register_buffer('pixel_mean', torch.Tensor(pixel_mean).view(1, -1, 1, 1), False)
         self.register_buffer('pixel_std', torch.Tensor(pixel_std).view(1, -1, 1, 1), False)
 
-        if RGBT_type == 'build_resnet_RGBT_Feature_backbone':
+        if RGBT_type in ['build_resnet_RGBT_Feature_backbone', 'build_resnet_RGBT_Feature_notSh_backbone']:
             from fastreid.modeling.backbones.fusion_layer_cbam import residual_contra_cbam_attn
             self.multimodal_fusion = residual_contra_cbam_attn([2048])
 
@@ -106,9 +106,16 @@ class Baseline_RGBT(nn.Module):
 
     def forward(self, batched_inputs):
         images, thermals = self.preprocess_image(batched_inputs)
+        thermals = thermals[:,[0]]
         if self.RGBT_type == 'build_resnet_RGBT_Concat_backbone':
             features = self.backbone(images, thermals)
         elif self.RGBT_type == 'build_resnet_RGBT_Feature_backbone':
+            features = self.backbone(images, thermals)
+            features_T = self.backbone(thermals, images)
+
+            features = self.multimodal_fusion([features], [features_T])
+            features = features[0]
+        elif self.RGBT_type == 'build_resnet_RGBT_Feature_notSh_backbone':
             features = self.backbone(images, thermals)
             features_T = self.backbone(thermals, images)
 
