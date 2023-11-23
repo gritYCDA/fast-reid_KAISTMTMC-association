@@ -1,6 +1,7 @@
 
 logs
-datasets/
+datasets/*
+!fastreid/data/datasets
 # compilation and distribution
 __pycache__
 _ext
